@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { ServiceType } from '@prisma/client';
 import { PrismaService } from 'src/shared/database/prisma.service';
 import { CreateServiceDto } from './dto/create-services.dto';
 import { UpdateServiceDto } from './dto/update-services.dto';
@@ -21,7 +20,7 @@ export class ServicesService {
             });
         } catch (error) {
             console.log('Error inserting new service:', error);
-            throw error;
+            return { message: 'Error inserting new service' };
         }
     }
 
@@ -33,7 +32,7 @@ export class ServicesService {
             });
         } catch (error) {
             console.log('Error deleting service:', error);
-            throw error;
+            return { message: 'Error deleting service' };
         }
     }
 
@@ -46,7 +45,7 @@ export class ServicesService {
             });
         } catch (error) {
             console.log('Error updating service:', error);
-            throw error;
+            return { message: 'Error updating service' };
         }
     }
 }
