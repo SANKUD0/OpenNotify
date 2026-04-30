@@ -1,13 +1,77 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =====================================================
+// Service : les services que tu monitores
+// =====================================================
+model Service {
+  id               String      @id @default(cuid())
+  name             String
+  type             ServiceType
+  target           String      // URL pour HTTP, host:port pour TCP, etc.
+  intervalSeconds  Int         @default(60)
+  timeoutMs        Int         @default(5000)
+  failureThreshold Int         @default(3)
+  enabled          Boolean     @default(true)
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  checks    Check[]
+  incidents Incident[]
+
+  @@index([enabled])
+}
+
+// =====================================================
+// Check : chaque résultat de check (historique)
+// =====================================================
+model Check {
+  id         String      @id @default(cuid())
+  serviceId  String
+  service    Service     @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  status     CheckStatus
+  latencyMs  Int?
+  statusCode Int?
+  error      String?
+  timestamp  DateTime    @default(now())
+
+  @@index([serviceId, timestamp(sort: Desc)])
+}
+
+// =====================================================
+// Incident : un incident = une période où un service était DOWN
+// =====================================================
+model Incident {
+  id            String    @id @default(cuid())
+  serviceId     String
+  service       Service   @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  startedAt     DateTime  @default(now())
+  resolvedAt    DateTime?
+  reason        String?
+  notifiedStart Boolean   @default(false)
+  notifiedEnd   Boolean   @default(false)
+
+  @@index([serviceId, resolvedAt])
+}
+
+// =====================================================
+// Enums
+// =====================================================
+enum ServiceType {
+  HTTP
+  TCP
+  PING
+  DOCKER
+}
+
+enum CheckStatus {
+  UP
+  DOWN
+  TIMEOUT
 }

@@ -1,0 +1,27 @@
+### Liste des services
+GET http://localhost:3000/services
+
+### Créer un service HTTP
+POST http://localhost:3000/services
+Content-Type: application/json
+
+{
+  "name": "GitHub",
+  "type": "HTTP",
+  "target": "https://github.com",
+  "intervalSeconds": 60
+}
+
+### Créer un service avec tous les champs
+POST http://localhost:3000/services
+Content-Type: application/json
+
+{
+  "name": "Mon serveur Minecraft",
+  "type": "TCP",
+  "target": "localhost:25565",
+  "intervalSeconds": 30,
+  "timeoutMs": 3000,
+  "failureThreshold": 5,
+  "enabled": true
+}
