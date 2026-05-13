@@ -85,6 +85,7 @@ model ServiceState {
   id         String      @id @default(cuid())
   serviceId  String      @unique
   service    Service     @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  latestCheckId String?
   status     CheckStatus
   latencyMs  Int?
   statusCode Int?
