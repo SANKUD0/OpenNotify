@@ -30,8 +30,8 @@ export class ServicesService {
         return this.servicesRepository.getServiceById(id);
     }
 
-    async getCount() {
-        return await this.servicesRepository.getCount();
+    getCount() {
+        return this.servicesRepository.getCount();
     }
 
     // checks

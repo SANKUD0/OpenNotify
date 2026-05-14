@@ -35,7 +35,7 @@ export class ServicesRepository {
         }
     }
 
-    updateService(dto: UpdateServiceDto, id : string) {
+    updateService(dto: UpdateServiceDto, id: string) {
         try {
             if (!id) throw new Error('Service ID is required for update');
             return this.prisma.service.update({
@@ -66,10 +66,9 @@ export class ServicesRepository {
         });
     }
 
-    async getCount() {
+    getCount() {
         try {
-            const count = await this.prisma.service.count();
-            return count;
+            return this.prisma.service.count();
         } catch (error) {
             console.log('Erreur lors de la récupération du nombre de services:', error);
             return null; // ou une valeur par défaut appropriée
