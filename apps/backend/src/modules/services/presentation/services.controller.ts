@@ -23,6 +23,15 @@ export class ServicesController {
         return res.status(HttpStatus.OK).json(service);
     }
 
+    @Get('/count')
+    async getCount() {
+        const count = await this.servicesService.getCount();
+        if (count === null || count === undefined) {
+            throw new HttpException('Unable to retrieve service count', HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        return { count };
+    }
+
     @Get(':id/checks')
     getChecks(@Body('id') id: string) {
         return this.servicesService.getChecksById(id);

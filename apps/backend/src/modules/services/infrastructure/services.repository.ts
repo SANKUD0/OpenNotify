@@ -65,4 +65,14 @@ export class ServicesRepository {
             where: { serviceId: id }
         });
     }
+
+    async getCount() {
+        try {
+            const count = await this.prisma.service.count();
+            return count;
+        } catch (error) {
+            console.log('Erreur lors de la récupération du nombre de services:', error);
+            return null; // ou une valeur par défaut appropriée
+        }
+    }
 }
