@@ -72,6 +72,14 @@ export class MonitoringServiceStateRepository {
     async getSpecificServiceState(serviceId: string) {
         return await this.prisma.serviceState.findUnique({
             where: { id: serviceId },
+            include: {
+                service: {
+                    select: {
+                        name: true,
+                        type: true,
+                    }
+                }
+            }
         });
     }
 
@@ -80,6 +88,15 @@ export class MonitoringServiceStateRepository {
      * @returns Une liste d'états de services.
      */
     async getAllServicesState() {
-        return await this.prisma.serviceState.findMany();
+        return await this.prisma.serviceState.findMany({
+            include: {
+                service: {
+                    select: {
+                        name: true,
+                        type: true,
+                    }
+                }
+            }
+        });
     }
 }
