@@ -74,7 +74,15 @@ export class IncidentsRepository {
    */
   async findAllIncidents() {
     try {
-      return await this.prisma.incident.findMany();
+      return await this.prisma.incident.findMany({
+        include: {
+          service: {
+            select: {
+              name: true,
+            }
+          }
+        }
+      });
     } catch (error) {
       throw new Error(`Failed to fetch incidents: ${error}`);
     }
