@@ -89,4 +89,13 @@ export class IncidentsService {
   async findAllIncidents() {
     return this.repository.findAllIncidents();
   }
+
+  /**
+   * Récupère le nombre total d'incidents ouverts (non résolus).
+   * @returns Un nombre représentant le total d'incidents ouverts.
+   * @throws Error si la requête échoue.
+   */
+  async getIncidentsCountOpen() {
+    return this.repository.getIncidentsCountOpen();
+  }
 }

@@ -63,7 +63,7 @@ export class IncidentsRepository {
 
     return consecutiveFailures;
   }
-  
+
   /**
    * Récupère tous les incidents, avec leurs détails (service, timestamps, etc).
    * 
@@ -82,10 +82,27 @@ export class IncidentsRepository {
 
   async findServiceByIncidentId(id: string) {
     try {
-      const service = await this.prisma.service.findUnique({ where: { id }});
+      const service = await this.prisma.service.findUnique({ where: { id } });
       return service;
     } catch (error) {
       throw new Error(`Failed to fetch service for incident with id ${id}: ${error}`);
+    }
+  }
+  /**
+   * Récupère le nombre total d'incidents ouverts (non résolus).
+   * @returns Un nombre représentant le total d'incidents ouverts.
+   * @throws Error si la requête échoue.
+   */
+  async getIncidentsCountOpen() {
+    try {
+      const count = await this.prisma.incident.count({
+        where: {
+          resolvedAt: null,
+        }
+      });
+      return count;
+    } catch (error) {
+      throw new Error(`Failed to fetch incidents count: ${error}`);
     }
   }
 }
