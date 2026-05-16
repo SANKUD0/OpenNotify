@@ -1,56 +1,50 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { TableCell } from "@/components/ui/table";
+"use client";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import ServicesCard from "@/components/ui/services/ServicesCard";
+import { api } from "@/lib/api";
+import { useEffect, useState } from "react";
 
 export default function ServicesPage() {
+    const [services, setServices] = useState<any[]>([]);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        api.services.getAll()
+            .then((data) => setServices(data))
+            .catch((err) => setError(err.message));
+    }, []);
+
     return (
         <div className="m-10">
-            {/* Add new service monitoring */}
             <div className="mb-6">
                 <Card>
                     <CardHeader>
-                        <CardTitle>Ajouter un service à monitorer</CardTitle>
-                        <CardDescription>Configurez un nouveau service pour le monitoring</CardDescription>
+                        <div className="flex justify-between items-center">
+                            <CardTitle>Services</CardTitle>
+                            <Button>+ Add Service</Button>
+                        </div>
                     </CardHeader>
                     <CardContent>
-                        {/* Form to add new service will go here */}
-                        <p className="text-muted-foreground">Formulaire d'ajout de service (à implémenter)</p>
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                            {error ? <p className="text-sm text-destructive text-center">{error}</p> : (
+                                <>
+                                    {services.map((service) => (
+                                        <div key={service.id}>
+                                            <ServicesCard
+                                                services={service.name}
+                                                type={service.type}
+                                                latency={service.latency}
+                                                intervalSeconds={service.intervalSeconds} />
+                                        </div>
+                                    ))}
+                                </>
+                            )}
+                        </div>
                     </CardContent>
                 </Card>
             </div>
-            <Card>
-                <CardHeader>
-                    <CardTitle>Services</CardTitle>
-                    <CardDescription>Liste de tous les services monitorés</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    {/* List of monitored services will go here */}
-                    <table className="w-full">
-                        <thead>
-                            <tr>
-                                <th className="text-left">Nom du service</th>
-                                <th className="text-left">Statut</th>
-                                <th className="text-left">Dernier check</th>
-                                <th className="text-left">Latence</th>
-                                <th className="text-left">Code de statut</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {/* Example row */}
-                            <tr>
-                                <td>API de paiement</td>
-                                <td className="text-green-500">Up</td>
-                                <td>2024-06-01 12:00:00</td>
-                                <TableCell className="text-muted-foreground">
-                                    {/* Latency value */}
-                                </TableCell>
-                                <TableCell className="text-muted-foreground">
-                                    {/* Status code value */}
-                                </TableCell>
-                            </tr>
-                        </tbody>
-                    </table>
-                </CardContent>
-            </Card>
         </div>
     );
 }
