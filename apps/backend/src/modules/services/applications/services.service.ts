@@ -30,6 +30,17 @@ export class ServicesService {
         return this.servicesRepository.getServiceById(id);
     }
 
+    getCount() {
+        return this.servicesRepository.getCount();
+    }
+
+    getUpServices() {
+        return this.servicesRepository.getUpServices();
+    }
+    getDownServices() {
+        return this.servicesRepository.getDownServices();
+    }
+
     // checks
     getChecksById(id: string) {
         return this.servicesRepository.getChecksById(id);

@@ -7,7 +7,7 @@ import { UpdateServiceDto } from "../applications/dto/update-services.dto";
 export class ServicesRepository {
     constructor(private readonly prisma: PrismaService) { }
 
-    findAll() {
+      findAll() {
         return this.prisma.service.findMany({
             orderBy: { createdAt: 'desc' }
         });
@@ -35,7 +35,7 @@ export class ServicesRepository {
         }
     }
 
-    updateService(dto: UpdateServiceDto, id : string) {
+    updateService(dto: UpdateServiceDto, id: string) {
         try {
             if (!id) throw new Error('Service ID is required for update');
             return this.prisma.service.update({
@@ -63,6 +63,27 @@ export class ServicesRepository {
     async getIncidentsById(id: string) {
         return this.prisma.incident.findMany({
             where: { serviceId: id }
+        });
+    }
+
+    getCount() {
+        try {
+            return this.prisma.service.count();
+        } catch (error) {
+            console.log('Erreur lors de la récupération du nombre de services:', error);
+            return null; // ou une valeur par défaut appropriée
+        }
+    }
+
+    getUpServices() {
+        return this.prisma.serviceState.count({
+            where: { status: 'UP' },
+        });
+    }
+
+    getDownServices() {
+        return this.prisma.serviceState.count({
+            where: { status: 'DOWN' },
         });
     }
 }
