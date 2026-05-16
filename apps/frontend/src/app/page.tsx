@@ -29,11 +29,11 @@ export default function Home() {
       .catch((err) => setErrorCount(err.message))
 
     api.services.getCountUp()
-      .then((data) => setUp(data.UpServices))
+      .then((data) => setUp(data.upServices))
       .catch((err) => setErrorUp(err.message))
 
     api.services.getCountDown()
-      .then((data) => setDown(data.DownServices))
+      .then((data) => setDown(data.downServices))
       .catch((err) => setErrorDown(err.message))
 
   };

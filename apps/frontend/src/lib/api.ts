@@ -6,10 +6,10 @@ export type NumberServiceResponse = {
     count: number;
 }
 export type UpServiceResponse = {
-    UpServices: number;
+    upServices: number;
 }
 export type DownServiceResponse = {
-    DownServices: number;
+    downServices: number;
 }
 export type CountIncidentsResponse = {
     count: number;
