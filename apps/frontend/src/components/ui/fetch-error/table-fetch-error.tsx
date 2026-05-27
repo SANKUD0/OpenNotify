@@ -14,11 +14,11 @@ export function TableFetchError({ colSpan, message = 'Failed to fetch', onRetry 
             Impossible de charger les données
           </p>
           <span className="text-xs text-muted-foreground">{message}</span>
-          {onRetry && (
+          {/* {onRetry && (
             <button onClick={onRetry} className="mt-1 flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md border hover:bg-muted transition-colors">
               <RefreshCw size={12} /> Réessayer
             </button>
-          )}
+          )} */}
         </div>
       </td>
     </tr>
