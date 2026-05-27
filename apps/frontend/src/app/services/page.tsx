@@ -14,6 +14,8 @@ import { api, ServicesCardInfo } from "@/lib/api";
 import { msToSeconds } from "@/lib/duration";
 import { X, Zap, Timer } from "lucide-react";
 import { useEffect, useState } from "react";
+import { PageFetchError } from "@/components/ui/fetch-error/page-fetch-error";
+import { TableFetchError } from "@/components/ui/fetch-error/table-fetch-error";
 
 export default function ServicesPage() {
     const [services, setServices] = useState<ServicesCardInfo[]>([]);
@@ -146,9 +148,6 @@ export default function ServicesPage() {
 
                 {/* Table */}
                 <div className="px-6 pb-6 overflow-auto">
-                    {error && (
-                        <p className="text-sm text-destructive mb-4">{error}</p>
-                    )}
                     <div className="rounded-lg border overflow-hidden">
                         <table className="w-full text-sm">
                             <thead className="bg-muted/50 border-b">
@@ -158,30 +157,34 @@ export default function ServicesPage() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {services.length === 0 ? (
+                           {error ? (
+                                    <TableFetchError colSpan={2} message={error} onRetry={fetchServices} />
+                                ) : services.length === 0 ? (
                                     <tr>
-                                        <td colSpan={5} className="p-6 text-center text-muted-foreground">
+                                        <td colSpan={2} className="p-6 text-center text-muted-foreground">
                                             Aucun service. Ajoutez-en un!
                                         </td>
                                     </tr>
-                                ) : services.map((s) => (
-                                    <tr
-                                        key={s.service.id}
-                                        onClick={() => setSelected(
-                                            selected?.service.id === s.service.id ? null : s
-                                        )}
-                                        className={`border-t cursor-pointer transition-colors ${selected?.service.id === s.service.id
-                                            ? 'bg-primary/5 border-l-2 border-l-primary'
-                                            : 'hover:bg-muted/30'
+                                ) : (
+                                    services.map((s) => (
+                                        <tr
+                                            key={s.service.id}
+                                            onClick={() => setSelected(
+                                                selected?.service.id === s.service.id ? null : s
+                                            )}
+                                            className={`border-t cursor-pointer transition-colors ${
+                                                selected?.service.id === s.service.id
+                                                    ? 'bg-primary/5 border-l-2 border-l-primary'
+                                                    : 'hover:bg-muted/30'
                                             }`}
-                                    >
-                                        <td className="p-3 font-medium">{s.service.name}</td>
-
-                                        <td className="p-3">
-                                            <StatusBadge status={s.status} />
-                                        </td>
-                                    </tr>
-                                ))}
+                                        >
+                                            <td className="p-3 font-medium">{s.service.name}</td>
+                                            <td className="p-3">
+                                                <StatusBadge status={s.status} />
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
                             </tbody>
                         </table>
                     </div>
