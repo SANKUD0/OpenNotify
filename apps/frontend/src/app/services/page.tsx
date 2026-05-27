@@ -10,10 +10,10 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import StatusBadge from "@/components/status";
-import { api, ServicesCardInfo } from "@/lib/api";
+import { api, MonotoringChecksResponse, ServicesCardInfo } from "@/lib/api";
 import { msToSeconds } from "@/lib/duration";
 import { X, Zap, Timer } from "lucide-react";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { PageFetchError } from "@/components/ui/fetch-error/page-fetch-error";
 import { TableFetchError } from "@/components/ui/fetch-error/table-fetch-error";
 
@@ -32,6 +32,7 @@ export default function ServicesPage() {
         enabled: true,
     });
 
+
     const fetchServices = () => {
         api.services.getServicesCardsInfos()
             .then(setServices)
@@ -41,9 +42,12 @@ export default function ServicesPage() {
         //     .catch((err) => setError(err.message));
     };
 
+
+
     useEffect(() => {
         fetchServices();
-    }, []);
+
+    }, [selected]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -157,7 +161,7 @@ export default function ServicesPage() {
                                 </tr>
                             </thead>
                             <tbody>
-                           {error ? (
+                                {error ? (
                                     <TableFetchError colSpan={2} message={error} onRetry={fetchServices} />
                                 ) : services.length === 0 ? (
                                     <tr>
@@ -172,11 +176,10 @@ export default function ServicesPage() {
                                             onClick={() => setSelected(
                                                 selected?.service.id === s.service.id ? null : s
                                             )}
-                                            className={`border-t cursor-pointer transition-colors ${
-                                                selected?.service.id === s.service.id
-                                                    ? 'bg-primary/5 border-l-2 border-l-primary'
-                                                    : 'hover:bg-muted/30'
-                                            }`}
+                                            className={`border-t cursor-pointer transition-colors ${selected?.service.id === s.service.id
+                                                ? 'bg-primary/5 border-l-2 border-l-primary'
+                                                : 'hover:bg-muted/30'
+                                                }`}
                                         >
                                             <td className="p-3 font-medium">{s.service.name}</td>
                                             <td className="p-3">
@@ -210,6 +213,8 @@ function ServiceDetailPanel({ service, onClose, onRefresh, }: { service: Service
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [details, setDetails] = useState<any>(null);
+    const [monitoringChecks, setMonitoringChecks] = useState<MonotoringChecksResponse[]>([]);
+    const [monitoringError, setMonitoringError] = useState<string | null>(null);
 
     const handleDelete = async (id: string) => {
         await api.services.delete(id);
@@ -217,6 +222,11 @@ function ServiceDetailPanel({ service, onClose, onRefresh, }: { service: Service
         onRefresh();
         onClose();
     };
+    const fetchMonitoring = (serviceId: string) => {
+        api.monitoring.get5FirstRecentChecksForService({ id: serviceId })
+            .then(setMonitoringChecks)
+            .catch((err) => setMonitoringError(err.message));
+    }
 
     useEffect(() => {
         api.services.getService(service.service.id)
@@ -226,6 +236,7 @@ function ServiceDetailPanel({ service, onClose, onRefresh, }: { service: Service
             .catch((err) => {
                 setError(err.message);
             });
+        if (service) fetchMonitoring(service.service.id);
     }, [service.service.id]);
 
     // const handleToggle = async () => {
@@ -261,9 +272,38 @@ function ServiceDetailPanel({ service, onClose, onRefresh, }: { service: Service
                 <h3 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">
                     Derniers checks
                 </h3>
-                <p className="text-sm text-muted-foreground italic">
-                    À implémenter — GET /services/{service.service.id}/checks
-                </p>
+                <div className="text-sm text-muted-foreground italic space-y-1">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th className="pr-4 text-left">Timestamp</th>
+                                <th className="pr-4 text-left">Status Code</th>
+                                <th className="pr-4 text-left">Status</th>
+                                <th className="text-left">Latency</th>
+                            </tr>
+                        </thead>
+                        {monitoringError ? (
+                            <TableFetchError colSpan={4} message={monitoringError} onRetry={() => fetchMonitoring(service.service.id)} />
+                        ) : (
+                            <>
+                                {monitoringChecks.map((check) => (
+                                    <React.Fragment key={check.id}>
+                                        <tbody>
+                                            <tr>
+                                                <td className="pr-4">{new Date(check.timestamp).toISOString()}</td>
+                                                <td className="pr-4">{check.statusCode ?? '—'}</td>
+                                                <td className="pr-4">
+                                                    <StatusBadge status={check.status} />
+                                                </td>
+                                                <td>{check.latencyMs != null ? check.latencyMs >= 1000 ? `${msToSeconds(check.latencyMs).toFixed(2)}s` : `${check.latencyMs}ms` : '—'}</td>
+                                            </tr>
+                                        </tbody>
+                                    </React.Fragment>
+                                ))}
+                            </>
+                        )}
+                    </table>
+                </div>
             </div>
 
             {/* Actions */}
