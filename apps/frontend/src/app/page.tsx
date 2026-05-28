@@ -2,9 +2,11 @@
 
 import { StatCard } from "@/components/StatCard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { TableFetchError } from "@/components/ui/fetch-error/table-fetch-error";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { api, incidentsResponse, servicesMonitoringResponse } from "@/lib/api";
 import { ExternalLink } from "lucide-react";
+import { error } from "next/dist/build/output/log";
 import { useEffect, useState } from "react";
 
 export default function Home() {
@@ -93,125 +95,131 @@ export default function Home() {
         <StatCard title="Incidents OPEN" value={incidents} error={errorIncidents} />
       </div>
       <div className="w-full">
-        {errorMonitoring ? (
-          <p className="text-sm text-destructive text-center p-4">{errorMonitoring}</p>
-        ) : (
-          <Card>
-            <CardHeader>
-              <CardTitle>Services Monitoring</CardTitle>
-              <CardDescription>Latest status for all services — refreshed every 30s</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Service</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Target</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Latency</TableHead>
-                    <TableHead>HTTP Code</TableHead>
-                    <TableHead>Error</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {monitoringData.map((entry) => (
-                    <TableRow key={entry.id} className={entry.status === "DOWN" ? "bg-red-500/5" : ""}>
-                      <TableCell className="font-medium">{entry.service.name}</TableCell>
-                      <TableCell className="text-muted-foreground">{entry.service.type}</TableCell>
-                      <TableCell className="font-mono text-xs text-muted-foreground">
-                        {entry.service.target.startsWith("http://") || entry.service.target.startsWith("https://") ? (
-                          <a
-                            href={entry.service.target}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
-                          >
-                            {entry.service.target}
-                            <ExternalLink className="h-3 w-3 shrink-0" />
-                          </a>
-                        ) : (
-                          entry.service.target
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold ${entry.status === "UP"
-                          ? "bg-green-500/15 text-green-600"
-                          : "bg-red-500/15 text-red-600"
-                          }`}>
-                          <span className={`h-1.5 w-1.5 rounded-full ${entry.status === "UP" ? "bg-green-500" : "bg-red-500"}`} />
-                          {entry.status}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {entry.latencyMs !== null ? `${entry.latencyMs} ms` : "—"}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {entry.statusCode !== null ? `${entry.statusCode}` : "—"}
-                      </TableCell>
-                      <TableCell>
-                        {entry.error
-                          ? <span className="text-yellow-600 text-xs">{entry.error}</span>
-                          : <span className="text-green-500 text-base">✓</span>
-                        }
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        )}
-      </div>
-      <div className="w-full pt-6">
-        {errorIncidentsData ? (
-          <p className="text-sm text-destructive text-center p-4">{errorIncidentsData}</p>
-        ) : (
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Incidents</CardTitle>
-              <CardDescription>Latest incidents — refreshed every 30s</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Service</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Reason</TableHead>
-                    <TableHead>Started</TableHead>
-                    <TableHead>Resolved</TableHead>
-                    <TableHead>Duration</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {incidentsData.map((entry) => {
-                    const isOpen = !entry.resolvedAt;
-                    const duration = formatDuration(entry.startedAt, entry.resolvedAt);
-                    return (
-                      <TableRow key={entry.id} className={isOpen ? "bg-red-500/5" : ""}>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Services Monitoring</CardTitle>
+            <CardDescription>Latest status for all services — refreshed every 30s</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Service</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Target</TableHead>
+                  <TableHead>Enabled</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Latency</TableHead>
+                  <TableHead>HTTP Code</TableHead>
+                  <TableHead>Error</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {errorMonitoring ? (<TableFetchError colSpan={7} message={errorMonitoring} />) : (
+                  <>
+                    {monitoringData.map((entry) => (
+                      <TableRow key={entry.id} className={entry.status === "DOWN" ? "bg-red-500/5" : ""}>
                         <TableCell className="font-medium">{entry.service.name}</TableCell>
+                        <TableCell className="text-muted-foreground">{entry.service.type}</TableCell>
+                        <TableCell className="font-mono text-xs text-muted-foreground">
+                          {entry.service.target.startsWith("http://") || entry.service.target.startsWith("https://") ? (
+                            <a
+                              href={entry.service.target}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
+                            >
+                              {entry.service.target}
+                              <ExternalLink className="h-3 w-3 shrink-0" />
+                            </a>
+                          ) : (
+                            entry.service.target
+                          )}
+                        </TableCell>
                         <TableCell>
-                          <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold ${isOpen
-                            ? "bg-red-500/15 text-red-600"
-                            : "bg-green-500/15 text-green-600"
+                          {entry.service.enabled ? <span className="text-green-500 text-base cursor-default">✓</span> : <span className="text-red-500 text-base cursor-default">✗</span>}
+                        </TableCell>
+                        <TableCell>
+                          <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold ${entry.status === "UP"
+                            ? "bg-green-500/15 text-green-600"
+                            : "bg-red-500/15 text-red-600"
                             }`}>
-                            <span className={`h-1.5 w-1.5 rounded-full ${isOpen ? "bg-red-500" : "bg-green-500"}`} />
-                            {isOpen ? "Open" : "Resolved"}
+                            <span className={`h-1.5 w-1.5 rounded-full ${entry.status === "UP" ? "bg-green-500" : "bg-red-500"}`} />
+                            {entry.status}
                           </span>
                         </TableCell>
-                        <TableCell className="text-muted-foreground">{entry.reason || "—"}</TableCell>
-                        <TableCell className="text-muted-foreground">{new Date(entry.startedAt).toLocaleString()}</TableCell>
-                        <TableCell className="text-muted-foreground">{entry.resolvedAt ? new Date(entry.resolvedAt).toLocaleString() : "—"}</TableCell>
-                        <TableCell className="text-muted-foreground">{duration ?? <span className="text-red-500 text-xs font-medium">Ongoing</span>}</TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {entry.latencyMs !== null ? `${entry.latencyMs} ms` : "—"}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {entry.statusCode !== null ? `${entry.statusCode}` : "—"}
+                        </TableCell>
+                        <TableCell>
+                          {entry.error
+                            ? <span className="text-yellow-600 text-xs">{entry.error}</span>
+                            : <span className="text-green-500 text-base">✓</span>
+                          }
+                        </TableCell>
                       </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        )}
+                    ))}
+                  </>)}
+
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </div>
+      <div className="w-full pt-6">
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Incidents</CardTitle>
+            <CardDescription>Latest incidents — refreshed every 30s</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Service</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Reason</TableHead>
+                  <TableHead>Started</TableHead>
+                  <TableHead>Resolved</TableHead>
+                  <TableHead>Duration</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {errorIncidentsData ? (<TableFetchError colSpan={6} message={errorIncidentsData} />) : (
+                  <>
+                    {incidentsData.map((entry) => {
+                      const isOpen = !entry.resolvedAt;
+                      const duration = formatDuration(entry.startedAt, entry.resolvedAt);
+                      return (
+                        <TableRow key={entry.id} className={isOpen ? "bg-red-500/5" : ""}>
+                          <TableCell className="font-medium">{entry.service.name}</TableCell>
+                          <TableCell>
+                            <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold ${isOpen
+                              ? "bg-red-500/15 text-red-600"
+                              : "bg-green-500/15 text-green-600"
+                              }`}>
+                              <span className={`h-1.5 w-1.5 rounded-full ${isOpen ? "bg-red-500" : "bg-green-500"}`} />
+                              {isOpen ? "Open" : "Resolved"}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">{entry.reason || "—"}</TableCell>
+                          <TableCell className="text-muted-foreground">{new Date(entry.startedAt).toLocaleString()}</TableCell>
+                          <TableCell className="text-muted-foreground">{entry.resolvedAt ? new Date(entry.resolvedAt).toLocaleString() : "—"}</TableCell>
+                          <TableCell className="text-muted-foreground">{duration ?? <span className="text-red-500 text-xs font-medium">Ongoing</span>}</TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </>)}
+
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

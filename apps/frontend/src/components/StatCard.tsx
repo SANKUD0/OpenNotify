@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { CardFetchError } from "./ui/fetch-error/card-fetch-error";
 import { Spinner } from "./ui/spinner";
 
 // components/StatCard.tsx
@@ -19,10 +20,7 @@ export function StatCard({ title, value, description, error  }: StatCardProps) {
             </CardHeader>
             <CardContent className="flex flex-col items-center">
                 <div className="text-3xl font-bold">
-                    {error
-                        ? <p className="text-sm text-destructive text-center">{error}</p>
-                        : value == null ? <Spinner /> : value
-                    }
+                    <CardFetchError message={error} />
                 </div>
                 {description && (
                     <p className="text-xs text-muted-foreground mt-1 text-center">{description}</p>

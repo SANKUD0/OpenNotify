@@ -21,6 +21,7 @@ export type servicesMonitoringResponse = {
         name: string;
         type: string;
         target: string;
+        enabled: boolean;
     },
     status: string;
     statusCode: number | null;
@@ -39,11 +40,39 @@ export type incidentsResponse = {
     }
 }
 
+export type ServicesCardInfo = {
+    status: string;
+    latencyMs: number | null;
+    service: {
+        id: string;
+        name: string;
+        type: string;
+        intervalSeconds: number;
+        timeoutMs: number;
+        failureThreshold: number;
+        enabled: boolean;
+    }
+}
+
+export type MonotoringChecksResponse = {
+    id: string;
+    serviceId: string;
+    status: string;
+    latencyMs: number | null;
+    statusCode: number | null;
+    error: string | null;
+    timestamp: string;
+}
+
 
 
 export const api = {
     services: {
         getAll: () => fetch(`${BASE_URL}/services`).then(res => {
+            if (!res.ok) throw new Error(`HTTP ${res.status} `);
+            return res.json()
+        }),
+        getService: (id: string) => fetch(`${BASE_URL}/services/${id}`).then(res => {
             if (!res.ok) throw new Error(`HTTP ${res.status} `);
             return res.json()
         }),
@@ -59,6 +88,49 @@ export const api = {
             if (!res.ok) throw new Error(`HTTP ${res.status} `);
             return res.json() as Promise<DownServiceResponse>
         }),
+        getServicesCardsInfos: () => fetch(`${BASE_URL}/services/cards/info`).then(res => {
+            if (!res.ok) throw new Error(`HTTP ${res.status} `);
+            return res.json() as Promise<ServicesCardInfo[]>
+        }),
+        saveNewService: (service: { name: string; type: string; target: string; intervalSeconds: number; timeoutMs: number; failureThreshold: number; enabled: boolean }) => fetch(`${BASE_URL}/services`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(service),
+        }).then(res => {
+            if (!res.ok) throw new Error(`HTTP ${res.status} `);
+            return res.json();
+        }),
+        delete: (id: string) => fetch(`${BASE_URL}/services/${id}`, {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json",
+            },
+        }).then(res => {
+            if (!res.ok) throw new Error(`HTTP ${res.status} `);
+        }),
+        // Patch /services/:id
+        patch: (id: string, service: { name?: string; type?: string; target?: string; intervalSeconds?: number; timeoutMs?: number; failureThreshold?: number; enabled?: boolean }) => fetch(`${BASE_URL}/services/${id}`, {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(service),
+        }).then(res => {
+            if (!res.ok) throw new Error(`HTTP ${res.status} `);
+            return res.json();
+        }),
+        enableDisableService: (id: string, isActive: boolean) => fetch(`${BASE_URL}/services/${id}/enable-disable`, {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ enabled: isActive }),
+        }).then(res => {
+            if (!res.ok) throw new Error(`HTTP ${res.status} `);
+            return res.json();
+        }),
     },
     incidents: {
         getAll: () => fetch(`${BASE_URL}/incidents`).then(res => {
@@ -69,11 +141,17 @@ export const api = {
             if (!res.ok) throw new Error(`HTTP ${res.status} `);
             return res.json() as Promise<CountIncidentsResponse>
         }),
+
+
     },
     monitoring: {
         getAll: () => fetch(`${BASE_URL}/monitoring`).then(res => {
             if (!res.ok) throw new Error(`HTTP ${res.status} `);
             return res.json() as Promise<servicesMonitoringResponse[]>
+        }),
+        get5FirstRecentChecksForService: ({ id }: { id: string }) => fetch(`${BASE_URL}/monitoring/${id}/checks`).then(res => {
+            if (!res.ok) throw new Error(`HTTP ${res.status} `);
+            return res.json() as Promise<MonotoringChecksResponse[]>
         }),
     }
 }
