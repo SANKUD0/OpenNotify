@@ -65,6 +65,16 @@ export class ServicesController {
         }
     }
 
+    @Patch(':id/enabled-disabled')
+    async patchServiceStatus(@Param('id') id: string, @Body('enabled') enabled: boolean) {
+        try {
+            if (enabled === undefined) throw new HttpException('Invalid request body', HttpStatus.BAD_REQUEST);
+            return await this.servicesService.patchServiceStatus(id, enabled);
+        } catch (error) {
+            throw new HttpException("Internal server error for updating service status", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     @Get('cards/info')
     async getServiceCardsInfo() {
         try {
