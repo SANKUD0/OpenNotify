@@ -108,6 +108,7 @@ export default function Home() {
                   <TableHead>Service</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead>Target</TableHead>
+                  <TableHead>Enabled</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Latency</TableHead>
                   <TableHead>HTTP Code</TableHead>
@@ -135,6 +136,9 @@ export default function Home() {
                           ) : (
                             entry.service.target
                           )}
+                        </TableCell>
+                        <TableCell>
+                          {entry.service.enabled ? <span className="text-green-500 text-base cursor-default">✓</span> : <span className="text-red-500 text-base cursor-default">✗</span>}
                         </TableCell>
                         <TableCell>
                           <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold ${entry.status === "UP"

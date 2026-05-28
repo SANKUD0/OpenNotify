@@ -21,6 +21,7 @@ export type servicesMonitoringResponse = {
         name: string;
         type: string;
         target: string;
+        enabled: boolean;
     },
     status: string;
     statusCode: number | null;
