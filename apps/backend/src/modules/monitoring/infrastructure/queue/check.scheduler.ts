@@ -20,31 +20,31 @@ export class CheckScheduler implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    this.logger.log('Initialisation du scheduler...');
+    this.logger.log('Initializing scheduler...');
 
-    // 1. Nettoyer les anciens jobs récurrents (pour avoir un état propre)
+    // 1. Clean up old repeatable jobs (to have a clean state at startup)
     const repeatableJobs = await this.checksQueue.getRepeatableJobs();
     for (const job of repeatableJobs) {
       await this.checksQueue.removeRepeatableByKey(job.key);
     }
-    this.logger.log(`${repeatableJobs.length} ancien(s) job(s) récurrent(s) supprimé(s).`);
+    this.logger.log(`${repeatableJobs.length} old repeatable job(s) removed.`);
 
-    // 2. Lire tous les services activés
+    // 2. Read all enabled services from the database
     const services = await this.prisma.service.findMany({
       where: { enabled: true },
     });
 
-    // 3. Créer un job récurrent pour chaque service
+    // 3. Create a repeatable job for each service
     for (const service of services) {
       await this.scheduleService(service.id, service.intervalSeconds);
     }
 
-    this.logger.log(`${services.length} service(s) programmé(s) pour monitoring.`);
+    this.logger.log(`${services.length} service(s) scheduled for monitoring.`);
   }
 
   /**
-   * Crée un job récurrent pour un service donné.
-   * Public pour pouvoir être appelée quand un nouveau service est créé.
+   * Creates a repeatable job for a given service.
+   * Public to be called when a new service is created.
    */
   async scheduleService(serviceId: string, intervalSeconds: number) {
     await this.checksQueue.add(
@@ -52,17 +52,17 @@ export class CheckScheduler implements OnModuleInit {
       { serviceId } as CheckJobData,
       {
         repeat: { every: intervalSeconds * 1000 },
-        jobId: `service-${serviceId}`, // ID unique pour éviter les doublons
-        removeOnComplete: 100, // Garde les 100 derniers jobs complétés (debug)
+        jobId: `service-${serviceId}`, // Unique ID to avoid duplicates
+        removeOnComplete: 100, // Keep the last 100 completed jobs (for debugging)
         removeOnFail: 50,
       },
     );
-    this.logger.log(`Service ${serviceId} programmé (toutes les ${intervalSeconds}s)`);
+    this.logger.log(`Service ${serviceId} scheduled (every ${intervalSeconds}s)`);
   }
 
   /**
-   * Déclenche un check unique et immédiat pour un service.
-   * À appeler juste après la création d'un service pour obtenir un premier résultat rapidement.
+   * Triggers a one-time immediate check for a service.
+   * To be called right after a service is created to get an initial result quickly.
    */
   async runImmediateCheck(serviceId: string) {
     await this.checksQueue.add(
@@ -73,12 +73,12 @@ export class CheckScheduler implements OnModuleInit {
         removeOnFail: 50,
       },
     );
-    this.logger.log(`Check immédiat déclenché pour service ${serviceId}`);
+    this.logger.log(`Immediate check triggered for service ${serviceId}`);
   }
 
   /**
-   * Supprime le job récurrent d'un service.
-   * À appeler quand un service est supprimé ou désactivé.
+   * Removes the repeatable job for a service.
+   * To be called when a service is deleted or disabled.
    */
   async unscheduleService(serviceId: string, intervalSeconds: number) {
     await this.checksQueue.removeRepeatable(
@@ -86,6 +86,6 @@ export class CheckScheduler implements OnModuleInit {
       { every: intervalSeconds * 1000 },
       `service-${serviceId}`,
     );
-    this.logger.log(`Service ${serviceId} désinscrit.`);
+    this.logger.log(`Service ${serviceId} unscheduled.`);
   }
 }
