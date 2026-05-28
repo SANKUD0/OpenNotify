@@ -27,7 +27,7 @@ export class ServicesRepository {
     async deleteService(id: string) {
         try {
             return await this.prisma.service.delete({
-                where: { id: id}
+                where: { id: id }
             });
         } catch (error) {
             console.log('Erreur lors de la suppression du service:', error);
@@ -98,9 +98,29 @@ export class ServicesRepository {
                         name: true,
                         type: true,
                         intervalSeconds: true,
+                        timeoutMs: true,
+                        failureThreshold: true,
+                        enabled: true,
                     }
                 }
             }
         });
+    }
+    /**
+     * Allows to enable or disable a service by updating its 'enabled' field in the database. This method is useful for controlling whether a service should be monitored or not without deleting it from the system.
+     * @param id The unique identifier of the service to be updated.
+     * @param enabled A boolean value indicating whether the service should be enabled (true) or disabled (false).
+     * @return The updated service object if the operation is successful, or an error message if there is an issue during the update process.
+     */
+    async patchServiceEnabled(id: string, enabled: boolean) {
+        try {
+            return await this.prisma.service.update({
+                where: { id },
+                data: { enabled }
+            });
+        } catch (error) {
+            console.log('Erreur lors de la mise à jour du statut du service:', error);
+            return { message: 'Erreur lors de la mise à jour du statut du service' };
+        }
     }
 }
