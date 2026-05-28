@@ -16,6 +16,7 @@ import { X, Zap, Timer } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { PageFetchError } from "@/components/ui/fetch-error/page-fetch-error";
 import { TableFetchError } from "@/components/ui/fetch-error/table-fetch-error";
+import styles from "./page.module.css";
 
 export default function ServicesPage() {
     const [services, setServices] = useState<ServicesCardInfo[]>([]);
@@ -249,7 +250,13 @@ function ServiceDetailPanel({ service, onClose, onRefresh, }: { service: Service
             {/* Header */}
             <div className="flex items-start justify-between mb-6">
                 <div>
-                    <h2 className="text-xl font-bold">{service.service.name}</h2>
+                    <div className="flex items-center gap-3">
+                        <h2 className="text-xl font-bold">{service.service.name}</h2>
+                        <div className={`${styles.toggle}`}>
+                            <input type="checkbox" id="toggle-service" />
+                            <label htmlFor="toggle-service"></label>
+                        </div>
+                    </div>
                     <div className="mt-1">
                         <StatusBadge status={service.status} />
                     </div>
@@ -267,7 +274,7 @@ function ServiceDetailPanel({ service, onClose, onRefresh, }: { service: Service
                 <InfoItem label="Latence" value={service.latencyMs != null ? service.latencyMs >= 1000 ? `${msToSeconds(service.latencyMs).toFixed(2)}s` : `${service.latencyMs}ms` : '—'} />
             </div>
 
-            {/* Derniers checks — à venir */}
+            {/* Derniers checks */}
             <div className="mb-6">
                 <h3 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">
                     Derniers checks
@@ -290,7 +297,7 @@ function ServiceDetailPanel({ service, onClose, onRefresh, }: { service: Service
                                     <React.Fragment key={check.id}>
                                         <tbody>
                                             <tr>
-                                                <td className="pr-4">{new Date(check.timestamp).toISOString()}</td>
+                                                <td className="pr-4">{new Date(check.timestamp).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "medium" })}</td>
                                                 <td className="pr-4">{check.statusCode ?? '—'}</td>
                                                 <td className="pr-4">
                                                     <StatusBadge status={check.status} />
