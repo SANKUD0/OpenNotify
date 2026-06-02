@@ -6,8 +6,9 @@ import { TableFetchError } from "@/components/ui/fetch-error/table-fetch-error";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { api, incidentsResponse, servicesMonitoringResponse } from "@/lib/api";
 import { ExternalLink } from "lucide-react";
-import { error } from "next/dist/build/output/log";
 import { useEffect, useState } from "react";
+
+const DASHBOARD_REFRESH_INTERVAL_MS = 30000;
 
 export default function Home() {
   const [count, setCount] = useState<number | null>(null);
@@ -25,52 +26,56 @@ export default function Home() {
   const [incidentsData, setIncidentsData] = useState<incidentsResponse[]>([]);
   const [errorIncidentsData, setErrorIncidentsData] = useState<string | null>(null);
 
-  const fetchServicesData = async () => {
-    api.services.getCount()
-      .then((data) => setCount(data.count))
-      .catch((err) => setErrorCount(err.message))
+  const refreshDashboardHttpData = async () => {
+    try {
+      const [servicesCount, servicesUp, servicesDown, incidentsCount, incidentsList, monitoringList] = await Promise.all([
+        api.services.getCount(),
+        api.services.getCountUp(),
+        api.services.getCountDown(),
+        api.incidents.getCount(),
+        api.incidents.getAll(),
+        api.monitoring.getAll(),
+      ]);
 
-    api.services.getCountUp()
-      .then((data) => setUp(data.upServices))
-      .catch((err) => setErrorUp(err.message))
+      setCount(servicesCount.count);
+      setUp(servicesUp.upServices);
+      setDown(servicesDown.downServices);
+      setIncidents(incidentsCount.count);
+      setIncidentsData(incidentsList);
+      setMonitoringData(monitoringList);
 
-    api.services.getCountDown()
-      .then((data) => setDown(data.downServices))
-      .catch((err) => setErrorDown(err.message))
-
+      setErrorCount(null);
+      setErrorUp(null);
+      setErrorDown(null);
+      setErrorIncidents(null);
+      setErrorIncidentsData(null);
+      setErrorMonitoring(null);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unknown error";
+      // Keep previous successful data on screen and expose the refresh failure in all widgets.
+      setErrorCount(message);
+      setErrorUp(message);
+      setErrorDown(message);
+      setErrorIncidents(message);
+      setErrorIncidentsData(message);
+      setErrorMonitoring(message);
+    }
   };
-  const fetchIncidentsData = async () => {
-    api.incidents.getAll()
-      .then((data) => setIncidentsData(data))
-      .catch((err) => setErrorIncidentsData(err.message));
-    api.incidents.getCount()
-      .then((data) => setIncidents(data.count))
-      .catch((err) => setErrorIncidents(err.message))
-  }
-  const fetchMonitoringData = async () => {
-    api.monitoring.getAll()
-      .then((data) => setMonitoringData(data))
-      .catch((err) => setErrorMonitoring(err.message));
-  }
 
   useEffect(() => {
-    // fetch all stats on component mount
-    fetchServicesData();
-    fetchIncidentsData();
-    fetchMonitoringData();
+    // Load all dashboard data through HTTP first; this function can later be replaced by WebSocket event handlers.
+    void refreshDashboardHttpData();
 
-    // TODO: Dans le futurs, on pourrait utiliser WebSocket pour éviter de faire du polling
-    // TODO: Dans le futurs, l'utilisateur pourrait configurer la fréquence de rafraîchissement des données
+    // TODO: Replace polling with a WebSocket stream when backend events are available.
+    // TODO: Expose a user setting to customize refresh frequency.
 
-    const interval = setInterval(fetchServicesData, 30000); // 30 secondes
-    const intervalIncidents = setInterval(fetchIncidentsData, 30000); // 30 seconds
-    const intervalMonitoring = setInterval(fetchMonitoringData, 30000); // 30 seconds
+    const interval = setInterval(() => {
+      void refreshDashboardHttpData();
+    }, DASHBOARD_REFRESH_INTERVAL_MS);
 
     return () => {
-      // cleanup all intervals on component unmount
+      // Cleanup interval on component unmount.
       clearInterval(interval);
-      clearInterval(intervalIncidents);
-      clearInterval(intervalMonitoring);
     };
   }, []);
 
