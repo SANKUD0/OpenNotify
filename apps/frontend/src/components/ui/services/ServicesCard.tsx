@@ -3,14 +3,24 @@ import { Card, CardContent, CardHeader } from "../card";
 import StatusBadge from "@/components/status";
 import { Timer, Zap } from "lucide-react";
 
+/** Props used to render one service summary card. */
 interface ServicesCardProps {
+    /** Human-readable service name. */
     services: string;
+    /** Monitoring type (HTTP, TCP, etc.). */
     type: string;
+    /** Latest observed latency in milliseconds. */
     latency: number | null;
+    /** Check interval in seconds. */
     intervalSeconds: number;
+    /** Latest service status. */
     status?: string;
 }
 
+/**
+ * Compact service card used in grid views.
+ * Highlights unhealthy services for faster visual triage.
+ */
 export default function ServicesCard({ services, type, latency, intervalSeconds, status }: ServicesCardProps) {
     const latencyDisplay = latency != null
         ? latency >= 1000 ? `${msToSeconds(latency).toFixed(2)} s` : `${latency} ms`
