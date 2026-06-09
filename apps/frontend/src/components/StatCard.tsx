@@ -6,12 +6,19 @@ import { cn } from "@/lib/utils";
 
 type StatCardAccent = "default" | "success" | "danger" | "warning";
 
+/** Presentation contract for the generic dashboard statistic card. */
 interface StatCardProps {
+    /** Card heading shown in the top-left area. */
     title: string;
+    /** Primary value. `null`/`undefined` renders a loading state. */
     value?: number | string | null;
+    /** Optional secondary context text displayed under the value. */
     description?: string;
+    /** Optional error message shown instead of the value. */
     error?: string | null;
+    /** Optional icon component displayed in the card header. */
     icon?: LucideIcon;
+    /** Semantic accent used for value and decoration styling. */
     accent?: StatCardAccent;
 }
 
@@ -38,6 +45,9 @@ const accentStyles: Record<StatCardAccent, { ring: string; icon: string; value: 
     },
 };
 
+/**
+ * Reusable KPI card with built-in loading and error states.
+ */
 export function StatCard({ title, value, description, error, icon: Icon, accent = "default" }: StatCardProps) {
     const styles = accentStyles[accent];
 
