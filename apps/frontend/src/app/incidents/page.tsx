@@ -254,6 +254,16 @@ function IncidentDetailPanel({ incident, onClose }: { incident: incidentsRespons
         setEditRootCause(false);
     }, [incident.id, incident.reason]);
 
+    function handleSaveRootCause() {
+        api.incidents.resolve(incident.id, rootCause)
+            .then(() => {
+                setEditRootCause(false);
+            })
+            .catch((error) => {
+                console.error("Failed to save root cause:", error);
+            });
+    }
+
     return (
         <div className="flex h-full flex-col">
             {/* Header */}
@@ -339,10 +349,7 @@ function IncidentDetailPanel({ incident, onClose }: { incident: incidentsRespons
                         <Wrench className="size-3.5" /> Root Cause (Reported)
                     </h3>
                     {!editRootCause && (
-                        <button
-                            onClick={() => setEditRootCause(true)}
-                            className="inline-flex cursor-pointer items-center gap-1 rounded-md px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                        >
+                        <button onClick={() => setEditRootCause(true)} className="inline-flex cursor-pointer items-center gap-1 rounded-md px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"   >
                             <Pencil className="size-3" /> Edit
                         </button>
                     )}
@@ -351,7 +358,7 @@ function IncidentDetailPanel({ incident, onClose }: { incident: incidentsRespons
                     <form
                         onSubmit={(e) => {
                             e.preventDefault();
-                            setEditRootCause(false);
+                            handleSaveRootCause();
                         }}
                         className="space-y-2"
                     >
@@ -377,9 +384,6 @@ function IncidentDetailPanel({ incident, onClose }: { incident: incidentsRespons
                                 Cancel
                             </Button>
                         </div>
-                        <p className="text-xs text-muted-foreground/70">
-                            Note: this is a local placeholder — changes are not persisted yet.
-                        </p>
                     </form>
                 ) : (
                     <p className="rounded-lg border bg-muted/30 p-3 text-sm text-muted-foreground">
