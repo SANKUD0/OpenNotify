@@ -82,6 +82,13 @@ export default function IncidentsPage() {
 
     const hasPanel = Boolean(selectedIncident);
 
+    const handleIncidentUpdated = (updated: incidentsResponse) => {
+        setIncidents((prev) => prev.map((i) => (i.id === updated.id ? updated : i)));
+        setSelectedIncident((current) =>
+            current && current.id === updated.id ? updated : current
+        );
+    };
+
     return (
         <div className="flex h-[calc(100vh-40px)]">
             <div className={`flex min-w-0 flex-col transition-all duration-300 ${hasPanel ? "w-2/5" : "w-full"}`}>
@@ -232,14 +239,26 @@ export default function IncidentsPage() {
 
             {selectedIncident && (
                 <div className="w-3/5 overflow-auto border-l p-6 duration-300 animate-in fade-in-0 slide-in-from-right-4">
-                    <IncidentDetailPanel incident={selectedIncident} onClose={() => setSelectedIncident(null)} />
+                    <IncidentDetailPanel
+                        incident={selectedIncident}
+                        onClose={() => setSelectedIncident(null)}
+                        onUpdated={handleIncidentUpdated}
+                    />
                 </div>
             )}
         </div>
     );
 }
 
-function IncidentDetailPanel({ incident, onClose }: { incident: incidentsResponse; onClose: () => void }) {
+function IncidentDetailPanel({
+    incident,
+    onClose,
+    onUpdated,
+}: {
+    incident: incidentsResponse;
+    onClose: () => void;
+    onUpdated: (incident: incidentsResponse) => void;
+}) {
     const isOpen = !incident.resolvedAt;
     const startedAt = formatDateTime(incident.startedAt);
     const resolvedAt = incident.resolvedAt ? formatDateTime(incident.resolvedAt) : "—";
@@ -247,21 +266,39 @@ function IncidentDetailPanel({ incident, onClose }: { incident: incidentsRespons
 
     const [editRootCause, setEditRootCause] = useState(false);
     const [rootCause, setRootCause] = useState(incident.reason ?? "");
+    const [saving, setSaving] = useState(false);
+    const [saveError, setSaveError] = useState<string | null>(null);
 
     // Reset local state when switching to a different incident.
     useEffect(() => {
         setRootCause(incident.reason ?? "");
         setEditRootCause(false);
+        setSaveError(null);
     }, [incident.id, incident.reason]);
 
     function handleSaveRootCause() {
+        setSaving(true);
+        setSaveError(null);
         api.incidents.resolve(incident.id, rootCause)
-            .then(() => {
+            .then((updated) => {
+                // Merge the server response onto the current incident so nested
+                // fields (e.g. `service`) are preserved even if the API omits them.
+                const partial = (updated && typeof updated === "object"
+                    ? updated
+                    : {}) as Partial<incidentsResponse>;
+                const next: incidentsResponse = {
+                    ...incident,
+                    ...partial,
+                    service: partial.service ?? incident.service,
+                    reason: partial.reason ?? rootCause,
+                };
+                onUpdated(next);
                 setEditRootCause(false);
             })
             .catch((error) => {
-                console.error("Failed to save root cause:", error);
-            });
+                setSaveError(error instanceof Error ? error.message : "Failed to save root cause");
+            })
+            .finally(() => setSaving(false));
     }
 
     return (
@@ -355,36 +392,47 @@ function IncidentDetailPanel({ incident, onClose }: { incident: incidentsRespons
                     )}
                 </div>
                 {editRootCause ? (
-                    <form
-                        onSubmit={(e) => {
-                            e.preventDefault();
-                            handleSaveRootCause();
-                        }}
-                        className="space-y-2"
-                    >
-                        <textarea
-                            className="w-full resize-none rounded-lg border bg-transparent p-3 text-sm outline-none transition-colors focus:border-ring focus:ring-2 focus:ring-ring/20"
-                            value={rootCause}
-                            onChange={(e) => setRootCause(e.target.value)}
-                            rows={4}
-                            placeholder="Describe the root cause of this incident..."
-                        />
-                        <div className="flex items-center gap-2">
-                            <Button type="submit" size="sm" className="cursor-pointer">Save</Button>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                className="cursor-pointer"
-                                onClick={() => {
-                                    setRootCause(incident.reason ?? "");
-                                    setEditRootCause(false);
-                                }}
-                            >
-                                Cancel
-                            </Button>
-                        </div>
-                    </form>
+                    <>
+                        <form
+                            onSubmit={(e) => {
+                                e.preventDefault();
+                                handleSaveRootCause();
+                            }}
+                            className="space-y-2"
+                        >
+                            <textarea
+                                className="w-full resize-none rounded-lg border bg-transparent p-3 text-sm outline-none transition-colors focus:border-ring focus:ring-2 focus:ring-ring/20"
+                                value={rootCause}
+                                onChange={(e) => setRootCause(e.target.value)}
+                                rows={4}
+                                placeholder="Describe the root cause of this incident..."
+                            />
+                            <div className="flex items-center gap-2">
+                                <Button type="submit" size="sm" className="cursor-pointer" disabled={saving}>
+                                    {saving ? "Saving…" : "Save"}
+                                </Button>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    className="cursor-pointer"
+                                    disabled={saving}
+                                    onClick={() => {
+                                        setRootCause(incident.reason ?? "");
+                                        setSaveError(null);
+                                        setEditRootCause(false);
+                                    }}
+                                >
+                                    Cancel
+                                </Button>
+                            </div>
+                            {saveError && (
+                                <p className="text-xs font-medium text-red-600 dark:text-red-400">
+                                    {saveError}
+                                </p>
+                            )}
+                        </form>
+                    </>
                 ) : (
                     <p className="rounded-lg border bg-muted/30 p-3 text-sm text-muted-foreground">
                         {rootCause || "No reason was provided for this incident."}
