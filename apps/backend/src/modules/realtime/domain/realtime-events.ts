@@ -8,6 +8,13 @@ export const REALTIME_EVENTS = {
 } as const;
 
 /**
+ * This type represents the names of the real-time events defined in REALTIME_EVENTS.
+ * It is derived from the keys of the REALTIME_EVENTS object.
+ */
+export type RealtimeEventName =
+  (typeof REALTIME_EVENTS)[keyof typeof REALTIME_EVENTS];
+
+/**
  * This interface defines the payload structure for the monitoring updated event.
  */
 export interface MonitoringUpdatedPayload {
