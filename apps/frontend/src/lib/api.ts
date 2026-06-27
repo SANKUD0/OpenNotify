@@ -1,6 +1,6 @@
 import { get } from "http";
 
-const BASE_URL = process.env.MONOLITH_API_URL || "http://localhost:3001";
+const BASE_URL = process.env.MONOLITH_API_URL! || "http://localhost:3004";
 
 /** Response payload for total services count. */
 export type NumberServiceResponse = {
@@ -166,8 +166,17 @@ export const api = {
             if (!res.ok) throw new Error(`HTTP ${res.status} `);
             return res.json() as Promise<CountIncidentsResponse>
         }),
-
-
+        /** Resolves an incident by id with a provided root cause. */
+        resolve: (id: string, rootCause: string) => fetch(`${BASE_URL}/incidents/${id}/resolve`, {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ rootCause }),
+        }).then(res => {
+            if (!res.ok) throw new Error(`HTTP ${res.status} `);
+            return res.json();
+        }),
     },
     monitoring: {
         /** Fetches latest monitoring state for all services. */
