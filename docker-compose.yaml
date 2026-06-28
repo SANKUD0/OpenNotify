@@ -7,9 +7,9 @@ services:
     ports:
       - "3003:3000"
     env_file:
-      - ./apps/frontend/.env.local
+      - ./apps/frontend/.env
     environment:
-      - MONOLITH_API_URL=http://opennotify-backend:3004
+      - MONOLITH_API_URL=http://localhost:3004
     networks:
       - opennotify-net
 
@@ -24,7 +24,10 @@ services:
       - ./apps/backend/.env
     networks:
       - opennotify-net
+      - shared-net
 
 networks:
   opennotify-net:
     driver: bridge
+  shared-net:
+    external: true
