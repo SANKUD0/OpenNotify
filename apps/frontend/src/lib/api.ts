@@ -1,6 +1,6 @@
 import { get } from "http";
 
-const BASE_URL = process.env.MONOLITH_API_URL! || "http://localhost:3004";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL! || "http://localhost:3004";
 
 /** Response payload for total services count. */
 export type NumberServiceResponse = {
