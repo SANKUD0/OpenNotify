@@ -17,12 +17,13 @@ import {
     SidebarTrigger,
     useSidebar,
 } from "@/components/ui/sidebar"
-import { ChevronRight, LayoutGrid, Mail, Settings } from "lucide-react"
+import { ChevronRight, LayoutGrid, Mail, PanelLeftClose, PanelLeftOpen, Settings } from "lucide-react"
 import Link from "next/link"
 import { Icon } from "@iconify/react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
 import { Separator } from "./ui/separator";
+import { Button } from "./ui/button";
 
 <Icon icon="material-symbols:space-dashboard-2-outline" />
 
@@ -30,7 +31,7 @@ export function AppSidebar() {
     return (
         <Sidebar collapsible="icon">
             <SidebarHeader>
-                <SidebarTrigger/>
+                <CustomSidebarTrigger />
             </SidebarHeader>
             <SidebarContent>
                 <SidebarGroup>
@@ -137,5 +138,22 @@ function SettingsMenu() {
                 </CollapsibleContent>
             </Collapsible>
         </SidebarMenuItem>
+    );
+}
+
+
+function CustomSidebarTrigger() {
+    const { toggleSidebar, state } = useSidebar();
+    const isOpen = state === "expanded";
+
+    return (
+        <Button variant="ghost" size="icon" onClick={toggleSidebar} className="h-8 w-8 transition-all hover:bg-sidebar-accent">
+            <PanelLeftClose className={`absolute transition-all duration-300 
+            ${isOpen ? "rotate-0 scale-100 opacity-100" : "rotate-180 scale-0 opacity-0"}`}
+                size={16} />
+            <PanelLeftOpen className={`absolute transition-all duration-300 
+            ${isOpen ? "rotate-180 scale-0 opacity-0" : "rotate-0 scale-100 opacity-100"}`}
+                size={16} />
+        </Button>
     );
 }
