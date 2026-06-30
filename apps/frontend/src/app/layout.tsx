@@ -6,7 +6,7 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { cn } from "@/lib/utils";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
-const montserrat = Montserrat({ subsets: ['latin'], variable: '--font-sans' });
+const montserrat = Montserrat({subsets:['latin'],variable:'--font-sans'});
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
