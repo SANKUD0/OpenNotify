@@ -74,14 +74,14 @@ export type MonotoringChecksResponse = {
 
 /** Response payload for Discord webhook settings. */
 export type DiscordWebhookSettingsResponse = {
-    id: string;
+    id?: string;
     webhookUrl: string;
     enabled: boolean;
 }
 
 /** Response payload for SMTP settings. */
 export type SMTPSettingsResponse = {
-    id: string;
+    id?: string;
     SMTPHost: string;
     SMTPPort: number;
     SMTPUsernameFrom: string;
@@ -209,6 +209,42 @@ export const api = {
         }),
     },
     notifications: {
-
-    }
+        getChannels: () => fetch(`${BASE_URL}/notifications`).then(res => {
+            if (!res.ok) throw new Error(`HTTP ${res.status} `);
+            return res.json() as Promise<DiscordWebhookSettingsResponse | SMTPSettingsResponse>
+        }),
+        getChannel: ({ id }: { id: string }) => fetch(`${BASE_URL}/notifications/${id}`).then(res => {
+            if (!res.ok) throw new Error(`HTTP ${res.status} `);
+            return res.json() as Promise<DiscordWebhookSettingsResponse | SMTPSettingsResponse>
+        }),
+        createChannels: ({ type, channels }: { type: string, channels: DiscordWebhookSettingsResponse | SMTPSettingsResponse }) => fetch(`${BASE_URL}/notifications`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({data: { type, ...channels }}),
+        }).then(res => {
+            if (!res.ok) throw new Error(`HTTP ${res.status} `);
+            return res.json();
+        }),
+        updateChannels: ({ id, channels }: { id: string, channels: DiscordWebhookSettingsResponse | SMTPSettingsResponse }) => fetch(`${BASE_URL}/notifications/${id}`, {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({data: {...channels}}),
+        }).then(res => {
+            if (!res.ok) throw new Error(`HTTP ${res.status} `);
+            return res.json();
+        }),
+        deleteChannels: ({ id }: { id: string }) => fetch(`${BASE_URL}/notifications/${id}`, {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json",
+            },
+        }).then(res => {
+            if (!res.ok) throw new Error(`HTTP ${res.status} `);
+            return res.json();
+        }),
+    },
 }
