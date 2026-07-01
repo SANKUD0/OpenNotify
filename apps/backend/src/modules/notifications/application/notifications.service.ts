@@ -68,6 +68,13 @@ export class NotificationsService {
     );
   }
 
+  /**
+   * Sends a notification to a specific contact.
+   * Called by IncidentsService on incident open/resolve transitions.
+   * @param contact - the contact to send the notification to
+   * @param payload - the notification payload
+   * @throws Error if the send fails
+   */
   private async sendToContact(
     contact: {
       id: string;
