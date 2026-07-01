@@ -33,4 +33,12 @@ export class NotificationChannelsService {
     async remove(id: string) {
         return await this.repository.remove(id);
     }
+    /**
+     * Retrieves a notification channel by its ID.
+     * @param id The ID of the notification channel to retrieve.
+     * @returns The notification channel with the specified ID.
+     */
+    async get(id: string) {
+        return await this.repository.get(id);
+    }
 }
